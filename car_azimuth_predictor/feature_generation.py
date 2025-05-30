@@ -68,12 +68,26 @@ def generate_features(config: DictConfig):
     df["azimuth_radians_shifted_0.5_pi"] = np_shift_05_pi(df["azimuth_radians"])
     df["azimuth_radians_shifted_0.5_pi_norm_abs"] = np.abs(
         df["azimuth_radians_shifted_0.5_pi"] / np.pi
-    )
-
+    )    
     df["azimuth_radians_sign"] = np.sign(df["azimuth_radians_shifted"])
     df["azimuth_sin"] = np.sin(df["azimuth_radians"])
     df["azimuth_cos"] = np.cos(df["azimuth_radians"])
 
+    # Elevation processing (similar to azimuth)
+    df["elevation_radians"] = df["elevation"] / 180 * np.pi
+    df["elevation_radians_shifted"] = df["elevation_radians"].apply(
+        lambda x: x if x < np.pi/2 else x - np.pi if x > np.pi/2 else x
+    )
+    df["elevation_radians_abs"] = np.abs(df["elevation_radians_shifted"])
+    df["elevation_norm_abs"] = df["elevation_radians_abs"] / (np.pi/2)  # Normalize by π/2 for elevation
+    df["elevation_sin"] = np.sin(df["elevation_radians"])
+    df["elevation_cos"] = np.cos(df["elevation_radians"])
+
+    # Distance processing (normalize to 0-1 range)
+    distance_min = df["distance"].min()
+    distance_max = df["distance"].max()
+    df["distance_normalized"] = (df["distance"] - distance_min) / (distance_max - distance_min)
+    
     df.to_csv(
         os.path.join(dataset_base_path, config.data_processing.csv_filename),
         index=False,

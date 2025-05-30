@@ -16,8 +16,7 @@ def get_callbacks(
     early_stopping_patience: int = 10,
     verbose: int = 1,
     monitor: str = "val_loss",
-):
-    """
+):    """
     Create standard callbacks for training
     
     Args:
@@ -30,8 +29,7 @@ def get_callbacks(
     
     Returns:
         List of callbacks
-    """
-    callbacks = []
+    """callbacks = []
 
     # Early stopping callback
     es_callback = tf.keras.callbacks.EarlyStopping(

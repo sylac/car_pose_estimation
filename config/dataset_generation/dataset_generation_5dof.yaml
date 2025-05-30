@@ -1,0 +1,44 @@
+df_path: "data/raw/PASCAL3D+_release1.1/annotations_angles.csv"
+df_train_path: "data/splitted/df_train.csv"
+df_val_path: "data/splitted/df_val.csv"
+df_test_path: "data/splitted/df_test.csv"
+images_path: "data/raw/PASCAL3D+_release1.1/Images/car_imagenet"
+gt_cols:
+  - "azimuth_sin"
+  - "azimuth_cos"
+  - "elevation_sin"
+  - "elevation_cos"
+  - "distance_normalized"
+image_width: 224
+image_height: 224
+batch_size: 32
+
+dataset_split:
+  train_ratio: 0.8
+  val_ratio: 0.2
+  random_state: 42
+
+feature_generation:
+  image_size: [224, 224]
+  output_dir: "data/processed"
+  angle_format: "sin_cos"  # sin_cos format for azimuth and elevation
+  include_distance: true
+  include_tilt: false  # Removed tilt for 5DOF
+  distance_normalization: "minmax"  # Normalize distance to [0, 1]
+
+dataset_generation:
+  batch_size: 32
+  shuffle_buffer_size: 1000
+  prefetch_buffer_size: 2
+  num_parallel_calls: 4
+  
+preprocessing:
+  apply_augmentation: true
+  horizontal_flip_prob: 0.5
+  rotation_range: 10
+  brightness_range: 0.15
+  contrast_range: 0.15
+  
+paths:
+  annotations_file: "data/processed/annotations.csv"
+  images_dir: "data/raw/PASCAL3D+_release1.1/Images/car_imagenet"

@@ -365,3 +365,87 @@ def angle_double_output_loss(y_true, y_pred):
     angle_loss = tf.keras.metrics.binary_crossentropy(y_true[:, 0], y_pred[:, 0])
     angle2_loss = tf.keras.metrics.binary_crossentropy(y_true[:, 1], y_pred[:, 1])
     return angle_loss + angle2_loss
+
+
+# ===== 5DOF POSE ESTIMATION FUNCTIONS (Azimuth, Elevation, Distance) =====
+
+def horizontal_flip_pose_5dof(pose):
+    """Flip pose for 5DOF representation [azimuth_sin, azimuth_cos, elevation_sin, elevation_cos, distance]"""
+    azimuth_sin, azimuth_cos, elevation_sin, elevation_cos, distance = pose
+    return [
+        -azimuth_sin,      # Flip azimuth sin
+        azimuth_cos,       # Keep azimuth cos  
+        elevation_sin,     # Keep elevation (vertical doesn't change)
+        elevation_cos,     
+        distance           # Keep distance
+    ]
+
+
+def pose_5dof_loss(y_true, y_pred):
+    """Combined loss for 5DOF pose estimation"""
+    # Split predictions: [azimuth_sin, azimuth_cos, elevation_sin, elevation_cos, distance]
+    azimuth_true = y_true[:, 0:2]
+    elevation_true = y_true[:, 2:4] 
+    distance_true = y_true[:, 4:5]
+    
+    azimuth_pred = y_pred[:, 0:2]
+    elevation_pred = y_pred[:, 2:4]
+    distance_pred = y_pred[:, 4:5]
+    
+    # Weighted losses
+    azimuth_loss = tf.keras.losses.MSE(azimuth_true, azimuth_pred) * 1.0
+    elevation_loss = tf.keras.losses.MSE(elevation_true, elevation_pred) * 1.0
+    distance_loss = tf.keras.losses.MSE(distance_true, distance_pred) * 0.8
+    
+    return azimuth_loss + elevation_loss + distance_loss
+
+
+def tf_mean_absolute_angle_error_5dof(y_true, y_pred):
+    """Calculate MAE for all angles in 5DOF pose"""
+    azimuth_mae = tf_mean_absolute_angle_error_sin_cos_output(y_true[:, 0:2], y_pred[:, 0:2])
+    elevation_mae = tf_mean_absolute_angle_error_sin_cos_output(y_true[:, 2:4], y_pred[:, 2:4])
+    return (azimuth_mae + elevation_mae) / 2
+
+
+def tf_distance_mae_5dof(y_true, y_pred):
+    """Distance mean absolute error for 5DOF pose"""
+    distance_true = y_true[:, 4:5]
+    distance_pred = y_pred[:, 4:5]
+    return tf.keras.metrics.mean_absolute_error(distance_true, distance_pred)
+
+
+def tf_azimuth_mae_5dof(y_true, y_pred):
+    """Azimuth MAE for 5DOF pose"""
+    return tf_mean_absolute_angle_error_sin_cos_output(y_true[:, 0:2], y_pred[:, 0:2])
+
+
+def tf_elevation_mae_5dof(y_true, y_pred):
+    """Elevation MAE for 5DOF pose"""
+    return tf_mean_absolute_angle_error_sin_cos_output(y_true[:, 2:4], y_pred[:, 2:4])
+
+
+def tf_rmse_angle_5dof(y_true, y_pred):
+    """RMSE for all angles in 5DOF pose"""
+    azimuth_rmse = tf_rmse_angle_sin_cos_output(y_true[:, 0:2], y_pred[:, 0:2])
+    elevation_rmse = tf_rmse_angle_sin_cos_output(y_true[:, 2:4], y_pred[:, 2:4])
+    return (azimuth_rmse + elevation_rmse) / 2
+
+
+def tf_acc_pi_6_5dof(y_true, y_pred):
+    """Accuracy within π/6 for all angles in 5DOF pose"""
+    azimuth_acc = tf_acc_pi_6_sin_cos_output(y_true[:, 0:2], y_pred[:, 0:2])
+    elevation_acc = tf_acc_pi_6_sin_cos_output(y_true[:, 2:4], y_pred[:, 2:4])
+    return (azimuth_acc + elevation_acc) / 2
+
+
+def np_get_pose_5dof_from_output(y_output: np.ndarray) -> dict:
+    """Extract 5DOF pose components from model output"""
+    azimuth_angles = np_get_angle_from_sin_cos(y_output[:, 0:2]) * 180 / np.pi
+    elevation_angles = np_get_angle_from_sin_cos(y_output[:, 2:4]) * 180 / np.pi
+    distances = y_output[:, 4]
+    
+    return {
+        'azimuth': azimuth_angles,
+        'elevation': elevation_angles,
+        'distance': distances
+    }

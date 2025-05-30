@@ -1,7 +1,12 @@
 import argparse
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 from car_azimuth_predictor.data_gathering import collect_data
 from car_azimuth_predictor.feature_generation import generate_features
-from car_azimuth_predictor.split_dataset import split_dataset
+#from car_azimuth_predictor.split_dataset import split_dataset
 from car_azimuth_predictor.config import load_config
 
 
@@ -17,7 +22,7 @@ def main():
 
     current_config = load_config()
 
-    # collect_data(current_config)
+    collect_data(current_config)
     # split_dataset(current_config)
     generate_features(current_config)
 

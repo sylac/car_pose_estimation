@@ -21,10 +21,12 @@ pandas = "1.4.3"
 tqdm = "^4.66.2"
 tensorflow-probability = "0.16.0"
 hydra-core = "1.2.0"
-tensorflow-io-gcs-filesystem = "0.34"
+tensorflow-io-gcs-filesystem = "0.31"
 tensorflow-hub = "^0.16.1"
 matplotlib = "3.5.2"
 pillow = "9.2.0"
+tensorflow-gpu = "2.8"
+protobuf = "3.20.3"
 
 [build-system]
 requires = ["poetry-core"]

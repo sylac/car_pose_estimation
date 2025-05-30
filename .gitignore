@@ -99,3 +99,4 @@ outputs
 data/
 models/
 hydra_logs/
+visualizations_5dof/
